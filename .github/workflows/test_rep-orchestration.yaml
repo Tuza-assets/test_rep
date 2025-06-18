@@ -24,13 +24,16 @@ jobs:
         with:
           api-key: ${{ secrets.IONOS_API_KEY }}
           service-host: api-eu.ionos.space
-          project-id: a1fecd26-550e-4c54-8e92-855bfa025097
+          project-id: d3b6f1ad-4e14-4ace-801d-d23b4f9d7ebb
           action: retrieve-info
 
 
   build:
     name: build
     needs: retrieve-project
+    permissions:
+      contents: read
+      packages: write
     if: ${{ needs.retrieve-project.outputs.deployment-enabled == 'true' }}
     uses: ./.github/workflows/test_rep-build.yaml
     with:
@@ -50,6 +53,6 @@ jobs:
         with:
           api-key: ${{ secrets.IONOS_API_KEY }}
           service-host: api-eu.ionos.space
-          project-id: a1fecd26-550e-4c54-8e92-855bfa025097
+          project-id: d3b6f1ad-4e14-4ace-801d-d23b4f9d7ebb
           branch-id: ${{ needs.retrieve-project.outputs.branch-id }}
           action: dispatch-deployments
