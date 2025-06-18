@@ -14,18 +14,43 @@ on:
         type: string
 
 env:
-  DEPLOYMENT_FOLDER: public/.
+  DEPLOYMENT_FOLDER: ./
 
 jobs:
 # Please do not rename this job
   build-project:
     name: build test_rep
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # if you add permissions here this needs to be done in the test_rep-orchestration.yaml as well
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+
+      - name: Render templates
+        uses: ionos-deploy-now/template-renderer-action@v2
+        id: template
+        with:
+          input-directory: .deploy-now/test_rep
+          output-directory: ${{ env.DEPLOYMENT_FOLDER }}
+          intermediate-data-file: ${{ env.DEPLOYMENT_FOLDER }}/.template-renderer-data
+
+      - name: Setup composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:2
+
+      - name: Run composer install
+# uncomment the following lines if you want to add environment variables for this step
+#        env:
+#          MY_ENV_VAR: value-for-my-env-var
+#          MY_SECRET_ENV_VAR: ${{ secrets.MY_SECRET }} # here you can find information how to create secrets: https://docs.github.com/en/actions/security-guides/encrypted-secrets
+        run: composer install --optimize-autoloader --no-dev
 
 # Please do not touch the following action
       - name: Store deployment content
@@ -33,7 +58,7 @@ jobs:
         with:
           api-key: ${{ secrets.IONOS_API_KEY }}
           service-host: api-eu.ionos.space
-          project-id: a1fecd26-550e-4c54-8e92-855bfa025097
+          project-id: d3b6f1ad-4e14-4ace-801d-d23b4f9d7ebb
           branch-id: ${{ inputs.branch-id }}
           version: ${{ github.sha }}
           folder: ${{ env.DEPLOYMENT_FOLDER }}
